@@ -14,7 +14,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
     sql_alter_column_type = "MODIFY %(column)s %(type)s"
     sql_alter_column_collate = "MODIFY %(column)s %(type)s%(collation)s"
     sql_alter_column_no_default_null = 'ALTER COLUMN %(column)s SET DEFAULT NULL'
-    sql_alter_column_comment = "MODIFY %(column)s %(type)s COMMENT '%(db_column_comment)s'"
+    sql_alter_column_comment = "MODIFY %(column)s %(type)s COMMENT '%(db_comment)s'"
 
     # No 'CASCADE' which works as a no-op in MySQL but is undocumented
     sql_delete_column = "ALTER TABLE %(table)s DROP COLUMN %(column)s"
@@ -56,9 +56,9 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
     def column_sql(self, model, field, include_default=False):
         sql, params = super().column_sql(model, field, include_default)
 
-        if field.db_column_comment:
-            sql += " COMMENT '%(db_column_comment)s' " % {
-                'db_column_comment': field.db_column_comment.replace('\'', '"').replace('\n', ' ')
+        if field.db_comment:
+            sql += " COMMENT '%(db_comment)s' " % {
+                'db_comment': field.db_comment.replace('\'', '"').replace('\n', ' ')
             }
 
         return sql, params
@@ -180,7 +180,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             self.sql_alter_column_comment % {
                 'column': self.quote_name(new_field.column),
                 'type': new_type,
-                'db_column_comment': new_db_comment.replace('\'', ' ').replace('\n', ' '),
+                'db_comment': new_db_comment.replace('\'', ' ').replace('\n', ' '),
             },
-            []
+            [],
         )

@@ -132,7 +132,7 @@ class Field(RegisterLookupMixin):
                  max_length=None, unique=False, blank=False, null=False,
                  db_index=False, rel=None, default=NOT_PROVIDED, editable=True,
                  serialize=True, unique_for_date=None, unique_for_month=None,
-                 unique_for_year=None, choices=None, help_text='', db_column=None, db_column_comment=None,
+                 unique_for_year=None, choices=None, help_text='', db_column=None, db_comment=None,
                  db_tablespace=None, auto_created=False, validators=(),
                  error_messages=None):
         self.name = name
@@ -155,7 +155,7 @@ class Field(RegisterLookupMixin):
         self.help_text = help_text
         self.db_index = db_index
         self.db_column = db_column
-        self.db_column_comment = db_column_comment
+        self.db_comment = db_comment
         self._db_tablespace = db_tablespace
         self.auto_created = auto_created
 
@@ -465,7 +465,7 @@ class Field(RegisterLookupMixin):
             "choices": None,
             "help_text": '',
             "db_column": None,
-            "db_column_comment": None,
+            "db_comment": None,
             "db_tablespace": None,
             "auto_created": False,
             "validators": [],
