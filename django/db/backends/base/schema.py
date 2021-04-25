@@ -194,10 +194,19 @@ class BaseDatabaseSchemaEditor:
                 if autoinc_sql:
                     self.deferred_sql.extend(autoinc_sql)
         constraints = [constraint.constraint_sql(model, self) for constraint in model._meta.constraints]
-        sql = self.sql_create_table % {
-            'table': self.quote_name(model._meta.db_table),
-            'definition': ', '.join(constraint for constraint in (*column_sqls, *constraints) if constraint),
-        }
+
+        if model._meta.db_table_comment and getattr(self, 'sql_create_table_with_comment', None):
+            sql = self.sql_create_table_with_comment % {
+                'table': self.quote_name(model._meta.db_table),
+                'definition': ', '.join(constraint for constraint in (*column_sqls, *constraints) if constraint),
+                "table_comment": model._meta.db_table_comment.replace('\'', '').replace('\n', ' ')
+            }
+        else:
+            sql = self.sql_create_table % {
+                'table': self.quote_name(model._meta.db_table),
+                'definition': ', '.join(constraint for constraint in (*column_sqls, *constraints) if constraint),
+            }
+
         if model._meta.db_tablespace:
             tablespace_sql = self.connection.ops.tablespace_sql(model._meta.db_tablespace)
             if tablespace_sql:
@@ -455,6 +464,9 @@ class BaseDatabaseSchemaEditor:
         for sql in self.deferred_sql:
             if isinstance(sql, Statement):
                 sql.rename_table_references(old_db_table, new_db_table)
+
+    def alter_db_table_comment(self, model, old_db_table_comment, new_db_table_comment):
+        logger.info('option "db_table_comment" is supported only mysql ....')
 
     def alter_db_tablespace(self, model, old_db_tablespace, new_db_tablespace):
         """Move a model's table between tablespaces."""
@@ -732,6 +744,16 @@ class BaseDatabaseSchemaEditor:
             fragment = self._alter_column_null_sql(model, old_field, new_field)
             if fragment:
                 null_actions.append(fragment)
+
+        if old_field.db_column_comment != new_field.db_column_comment:
+            fragment = self._alter_column_comment_sql(model, new_field, new_type, new_field.db_column_comment)
+            if fragment:
+                if self.connection.vendor not in ['postgresql', 'oracle']:
+                    null_actions.append(fragment)
+                else:
+                    # postgres, oracle sql dialect is separate with ALTER COLUMN & CREATE COMMENT
+                    self.execute(fragment[0], fragment[1])
+
         # Only if we have a default and there is a change from NULL to NOT NULL
         four_way_default_alteration = (
             new_field.has_default() and
@@ -928,6 +950,9 @@ class BaseDatabaseSchemaEditor:
             ),
             [],
         )
+
+    def _alter_column_comment_sql(self, model, new_field, new_type, new_db_comment):
+        raise NotImplementedError("column comment sql depend on Database Dialect, implement or return None")
 
     def _alter_column_collation_sql(self, model, new_field, new_type, new_collation):
         return (

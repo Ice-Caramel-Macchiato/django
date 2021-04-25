@@ -4,13 +4,17 @@ from django.db.models import NOT_PROVIDED
 
 class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
 
+    sql_create_table_with_comment = "CREATE TABLE %(table)s (%(definition)s) COMMENT '%(table_comment)s'"
+
     sql_rename_table = "RENAME TABLE %(old_table)s TO %(new_table)s"
+    sql_alter_table_comment = "ALTER TABLE %(table)s COMMENT = '%(db_table_comment)s'"
 
     sql_alter_column_null = "MODIFY %(column)s %(type)s NULL"
     sql_alter_column_not_null = "MODIFY %(column)s %(type)s NOT NULL"
     sql_alter_column_type = "MODIFY %(column)s %(type)s"
     sql_alter_column_collate = "MODIFY %(column)s %(type)s%(collation)s"
     sql_alter_column_no_default_null = 'ALTER COLUMN %(column)s SET DEFAULT NULL'
+    sql_alter_column_comment = "MODIFY %(column)s %(type)s COMMENT '%(db_column_comment)s'"
 
     # No 'CASCADE' which works as a no-op in MySQL but is undocumented
     sql_delete_column = "ALTER TABLE %(table)s DROP COLUMN %(column)s"
@@ -48,6 +52,16 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         elif self.connection.mysql_version >= (8, 0, 4):
             return super().sql_rename_column
         return 'ALTER TABLE %(table)s CHANGE %(old_column)s %(new_column)s %(type)s'
+
+    def column_sql(self, model, field, include_default=False):
+        sql, params = super().column_sql(model, field, include_default)
+
+        if field.db_column_comment:
+            sql += " COMMENT '%(db_column_comment)s' " % {
+                'db_column_comment': field.db_column_comment.replace('\'', '"').replace('\n', ' ')
+            }
+
+        return sql, params
 
     def quote_value(self, value):
         self.connection.ensure_connection()
@@ -150,3 +164,23 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
     def _rename_field_sql(self, table, old_field, new_field, new_type):
         new_type = self._set_field_new_type_null_status(old_field, new_type)
         return super()._rename_field_sql(table, old_field, new_field, new_type)
+
+    def alter_db_table_comment(self, model, old_db_table_comment, new_db_table_comment):
+        """ Modify the table comment """
+        if old_db_table_comment == new_db_table_comment:
+            return
+        self.execute(self.sql_alter_table_comment % {
+            "table": self.quote_name(model._meta.db_table),
+            "db_table_comment": self.quote_name(new_db_table_comment.replace('\'', '').replace('\n', ' ')),
+        })
+
+    def _alter_column_comment_sql(self, model, new_field, new_type, new_db_comment):
+        new_type = self._set_field_new_type_null_status(new_field, new_type)
+        return (
+            self.sql_alter_column_comment % {
+                'column': self.quote_name(new_field.column),
+                'type': new_type,
+                'db_column_comment': new_db_comment.replace('\'', ' ').replace('\n', ' '),
+            },
+            []
+        )
