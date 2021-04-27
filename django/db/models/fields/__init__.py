@@ -199,6 +199,7 @@ class Field(RegisterLookupMixin):
             *self._check_field_name(),
             *self._check_choices(),
             *self._check_db_index(),
+            *self._check_db_comment(),
             *self._check_null_allowed_for_primary_keys(),
             *self._check_backend_specific_checks(**kwargs),
             *self._check_validators(),
@@ -312,6 +313,18 @@ class Field(RegisterLookupMixin):
                     "'db_index' must be None, True or False.",
                     obj=self,
                     id='fields.E006',
+                )
+            ]
+        else:
+            return []
+
+    def _check_db_comment(self):
+        if self.db_comment and connection.vendor == 'sqlite':
+            return [
+                checks.Warning(
+                    '{vendor} does not support a database comment on columns'.format(vendor=connection.vendor),
+                    obj=self,
+                    id='field.W163',
                 )
             ]
         else:
