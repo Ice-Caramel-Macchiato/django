@@ -319,6 +319,24 @@ characters that aren't allowed in Python variable names -- notably, the
 hyphen -- that's OK. Django quotes column and table names behind the
 scenes.
 
+
+``db_comment``
+--------------
+
+.. attribute:: Field.db_comment
+
+db_comment support SQL COMMENT.
+
+It is similar to `help_text`_ in terms of displaying. it's useful for sharing
+documents with DBA as well as developers. If you want to share `help_text`_
+with DBA, use ``db_comment`` instead of `help_text`_. For example::
+
+    db_comment="this is denormalization Field, do not update this field alone."
+
+SQL COMMENT is unsupported in SQLite therefore When using the
+SQLite database backend, ``db_comment`` is ignored at the execution of
+:doc:`migration </topics/migrations>`
+
 ``db_index``
 ------------
 
