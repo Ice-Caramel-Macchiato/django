@@ -176,11 +176,11 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
 
     def _alter_column_comment_sql(self, model, new_field, new_type, new_db_comment):
         new_type = self._set_field_new_type_null_status(new_field, new_type)
-        return (
+        return [(
             self.sql_alter_column_comment % {
                 'column': self.quote_name(new_field.column),
                 'type': new_type,
                 'db_comment': new_db_comment.replace('\'', ' ').replace('\n', ' '),
             },
             [],
-        )
+        ), None]
