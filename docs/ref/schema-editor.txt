@@ -118,6 +118,17 @@ value.
 
 Renames the model's table from ``old_db_table`` to ``new_db_table``.
 
+``alter_db_table_comment()``
+----------------------------
+
+.. method:: BaseDatabaseSchemaEditor.alter_db_table_comment(model, old_db_table, new_db_table)
+
+Change the model's :attr:`~django.db.models.Options.db_table_comment` value;
+this will add or update comment from the models's table until they match the
+new value.
+
+
+
 ``alter_db_tablespace()``
 -------------------------
 
