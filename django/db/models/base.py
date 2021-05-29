@@ -1370,7 +1370,7 @@ class Model(metaclass=ModelBase):
         if cls._meta.db_table_comment and connection.vendor == 'sqlite':
             errors.append(
                 checks.Warning(
-                    '%s does not support table comment.' % connection.vendor,
+                    '%s does not support db_table_comment.' % connection.vendor,
                     id='models.W045',
                     obj=cls,
                 )
