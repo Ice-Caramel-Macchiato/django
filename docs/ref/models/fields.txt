@@ -323,19 +323,36 @@ scenes.
 ``db_comment``
 --------------
 
+.. versionadded:: 4.0
 .. attribute:: Field.db_comment
 
 db_comment support SQL COMMENT.
 
-It is similar to `help_text`_ in terms of displaying. it's useful for sharing
-documents with DBA as well as developers. If you want to share `help_text`_
-with DBA, use ``db_comment`` instead of `help_text`_. For example::
+A string describing the Model field which will be saved as a SQL
+COMMENT on the SQL COLUMN
 
-    db_comment="this is denormalization Field, do not update this field alone."
+Unlike `help_text`, db_comments are displayed in the database as
+SQL COMMENTs, which makes them useful for documenting fields
+for database administrators, developers, analysts, and others with
+direct database access, especially if you need to provide different
+explanations  for users or site admins (using `help_text`) vs. for DBAs
+(using `db_comment`). For example::
 
-SQL COMMENT is unsupported in SQLite therefore When using the
-SQLite database backend, ``db_comment`` is ignored at the execution of
-:doc:`migration </topics/migrations>`
+    db_comment = "User karma points. This is field is denormalized,\
+                          so should not be updated alone. This comment is\
+                          managed by Django, and will be updated on every\
+                          database migration."
+
+db_comment has a character limit that differs for each database
+backend. PostgreSQL has a 1GB limit. MySQL has a 1024 character limit.
+
+.. warning::
+    Changes to database column comments made by database
+    users outside of Django will be overwritten by Django migrations
+    if Django finds a value for db_comment on a model field.
+    Communicating with your DBAs and issuing reminder notices in
+    the comments (as in the example above) may help avoid conflicts.
+
 
 ``db_index``
 ------------
