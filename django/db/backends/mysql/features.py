@@ -19,6 +19,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     can_release_savepoints = True
     atomic_transactions = False
     can_clone_databases = True
+    supports_db_comments = True
     supports_temporal_subtraction = True
     supports_select_intersection = False
     supports_select_difference = False

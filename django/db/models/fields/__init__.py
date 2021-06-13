@@ -319,10 +319,10 @@ class Field(RegisterLookupMixin):
             return []
 
     def _check_db_comment(self):
-        if self.db_comment and connection.vendor == 'sqlite':
+        if self.db_comment and not connection.features.supports_db_comments:
             return [
                 checks.Warning(
-                    '{vendor} does not support a db_comment on columns'.format(vendor=connection.vendor),
+                    '{vendor} does not support a db_comment on columns'.format(vendor=connection.display_name),
                     obj=self,
                     id='field.W163',
                 )

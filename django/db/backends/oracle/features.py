@@ -22,6 +22,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     supports_partially_nullable_unique_constraints = False
     supports_deferrable_unique_constraints = True
     truncates_names = True
+    supports_db_comments = True
     supports_tablespaces = True
     supports_sequence_reset = False
     can_introspect_materialized_views = True
