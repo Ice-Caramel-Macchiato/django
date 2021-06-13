@@ -58,6 +58,41 @@ For example::
 Functional unique constraints are added to models using the
 :attr:`Meta.constraints <django.db.models.Options.constraints>` option.
 
+
+Supoort SQL COMMENT
+-------------------
+
+* The new option :attr:`db_comment <django.db.models.Field.db_comment>` to
+  Field
+
+* The new option :attr:`db_table_comment
+  <django.db.models.Options.db_table_comment>` to Model Meta
+
+
+For example::
+
+    from django.db import models
+
+
+    class AModel(models.Model):
+
+        a_char_field = models.CharField(
+            max_length=32,
+            db_comment='User karma points. This is field is denormalized,\
+                            so should not be updated alone. This comment is\
+                            managed by Django, and will be updated on every\
+                            database migration.'
+        )
+        a_int_field = models.IntegerField(db_comment='deprecated column')
+        # ...
+        # all Fields can use db_comment option
+
+    class Meta:
+        db_table_comment = 'Each entry in this table is gathered when\
+                           the user registers. This comment is managed by\
+                           Django, and will be updated on every migration.'
+
+
 Minor features
 --------------
 
