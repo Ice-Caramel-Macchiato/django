@@ -35,10 +35,6 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
 
     sql_delete_procedure = 'DROP FUNCTION %(procedure)s(%(param_types)s)'
 
-    sql_create_table_with_comment = """
-        CREATE TABLE %(table)s (%(definition)s);
-        COMMENT ON TABLE %(table)s IS '%(table_comment)s'
-    """
     sql_create_table_comment = "COMMENT ON TABLE %(table)s IS '%(table_comment)s'"
     sql_create_column_comment = "COMMENT ON COLUMN %(table)s.%(column)s IS '%(column_comment)s'"
 
@@ -50,6 +46,30 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             adapted.encoding = 'utf8'
         # getquoted() returns a quoted bytestring of the adapted value.
         return adapted.getquoted().decode()
+
+    def create_model(self, model):
+        super().create_model(model)
+        if model._meta.db_table_comment:
+            self.execute(self.sql_create_table_comment % {
+                'table': model._meta.db_table,
+                'table_comment': model._meta.db_table_comment.replace('\'', '').replace('\n', ' ')
+            }, [])
+        for field in model._meta.local_fields:
+            if field.db_comment:
+                self.execute(self.sql_create_column_comment % {
+                    'table': model._meta.db_table,
+                    'column': field.db_column or field.get_attname(),
+                    'column_comment': field.db_comment.replace('\'', '').replace('\n', ' ')
+                }, [])
+
+    def add_field(self, model, field):
+        super().add_field(model, field)
+        if field.db_comment:
+            self.execute(self.sql_create_column_comment % {
+                'table': model._meta.db_table,
+                'column': field.db_column or field.get_attname(),
+                'column_comment': field.db_comment.replace('\'', '').replace('\n', ' ')
+            }, [])
 
     def _field_indexes_sql(self, model, field):
         output = super()._field_indexes_sql(model, field)

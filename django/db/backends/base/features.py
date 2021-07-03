@@ -24,6 +24,7 @@ class BaseDatabaseFeatures:
     supports_partially_nullable_unique_constraints = True
     # Does the backend support initially deferrable unique constraints?
     supports_deferrable_unique_constraints = False
+    supports_db_comments = False
 
     can_use_chunked_reads = True
     can_return_columns_from_insert = False

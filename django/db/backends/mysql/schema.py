@@ -3,14 +3,13 @@ from django.db.models import NOT_PROVIDED
 
 
 class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
-
-    sql_create_table_with_comment = "CREATE TABLE %(table)s (%(definition)s) COMMENT '%(table_comment)s'"
+    sql_create_table = "CREATE TABLE %(table)s (%(definition)s) COMMENT '%(table_comment)s'"
 
     sql_rename_table = "RENAME TABLE %(old_table)s TO %(new_table)s"
     sql_alter_table_comment = "ALTER TABLE %(table)s COMMENT = '%(db_table_comment)s'"
 
-    sql_alter_column_null = "MODIFY %(column)s %(type)s NULL"
-    sql_alter_column_not_null = "MODIFY %(column)s %(type)s NOT NULL"
+    sql_alter_column_null = "MODIFY %(column)s %(type)s NULL COMMENT '%(db_comment)s'"
+    sql_alter_column_not_null = "MODIFY %(column)s %(type)s NOT NULL COMMENT '%(db_comment)s'"
     sql_alter_column_type = "MODIFY %(column)s %(type)s"
     sql_alter_column_collate = "MODIFY %(column)s %(type)s%(collation)s"
     sql_alter_column_no_default_null = 'ALTER COLUMN %(column)s SET DEFAULT NULL'

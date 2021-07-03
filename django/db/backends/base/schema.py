@@ -194,19 +194,12 @@ class BaseDatabaseSchemaEditor:
                 if autoinc_sql:
                     self.deferred_sql.extend(autoinc_sql)
         constraints = [constraint.constraint_sql(model, self) for constraint in model._meta.constraints]
-
-        if model._meta.db_table_comment and getattr(self, 'sql_create_table_with_comment', None):
-            sql = self.sql_create_table_with_comment % {
-                'table': self.quote_name(model._meta.db_table),
-                'definition': ', '.join(constraint for constraint in (*column_sqls, *constraints) if constraint),
-                "table_comment": model._meta.db_table_comment.replace('\'', '').replace('\n', ' '),
-            }
-        else:
-            sql = self.sql_create_table % {
-                'table': self.quote_name(model._meta.db_table),
-                'definition': ', '.join(constraint for constraint in (*column_sqls, *constraints) if constraint),
-            }
-
+        sql = self.sql_create_table % {
+            'table': self.quote_name(model._meta.db_table),
+            'definition': ', '.join(constraint for constraint in (*column_sqls, *constraints) if constraint),
+            'table_comment': model._meta.db_table_comment.replace('\'', '').replace('\n', ' ')
+            if model._meta.db_table_comment else '',
+        }
         if model._meta.db_tablespace:
             tablespace_sql = self.connection.ops.tablespace_sql(model._meta.db_tablespace)
             if tablespace_sql:
@@ -337,6 +330,7 @@ class BaseDatabaseSchemaEditor:
         """
         sql, params = self.table_sql(model)
         # Prevent using [] as params, in the case a literal '%' is used in the definition
+        print('----')
         self.execute(sql, params or None)
 
         # Add any field index and index_together's (deferred as SQLite _remake_table needs it)
@@ -889,6 +883,7 @@ class BaseDatabaseSchemaEditor:
                 sql % {
                     'column': self.quote_name(new_field.column),
                     'type': new_db_params['type'],
+                    'db_comment': new_field.db_comment or '',
                 },
                 [],
             )
