@@ -1,7 +1,11 @@
+from collections import namedtuple
+
 from django.db.backends.base.introspection import (
-    BaseDatabaseIntrospection, FieldInfo, TableInfo,
+    BaseDatabaseIntrospection, FieldInfo as BaseFieldInfo, TableInfo,
 )
 from django.db.models import Index
+
+FieldInfo = namedtuple('FieldInfo', BaseFieldInfo._fields + ('column_comment',))
 
 
 class DatabaseIntrospection(BaseDatabaseIntrospection):
@@ -70,7 +74,8 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
                 a.attname AS column_name,
                 NOT (a.attnotnull OR (t.typtype = 'd' AND t.typnotnull)) AS is_nullable,
                 pg_get_expr(ad.adbin, ad.adrelid) AS column_default,
-                CASE WHEN collname = 'default' THEN NULL ELSE collname END AS collation
+                CASE WHEN collname = 'default' THEN NULL ELSE collname END AS collation,
+                (SELECT col_description(a.attrelid, a.attnum)) AS column_comment
             FROM pg_attribute a
             LEFT JOIN pg_attrdef ad ON a.attrelid = ad.adrelid AND a.attnum = ad.adnum
             LEFT JOIN pg_collation co ON a.attcollation = co.oid

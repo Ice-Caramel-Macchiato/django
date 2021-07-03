@@ -9,7 +9,7 @@ from django.db.backends.base.introspection import (
 from django.db.models import Index
 from django.utils.regex_helper import _lazy_re_compile
 
-FieldInfo = namedtuple('FieldInfo', BaseFieldInfo._fields + ('pk', 'has_json_constraint'))
+FieldInfo = namedtuple('FieldInfo', BaseFieldInfo._fields + ('pk', 'has_json_constraint', 'db_comment'))
 
 field_size_re = _lazy_re_compile(r'^\s*(?:var)?char\s*\(\s*(\d+)\s*\)\s*$')
 
@@ -103,7 +103,7 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
         return [
             FieldInfo(
                 name, data_type, None, get_field_size(data_type), None, None,
-                not notnull, default, collations.get(name), pk == 1, name in json_columns
+                not notnull, default, collations.get(name), None, pk == 1, name in json_columns
             )
             for cid, name, data_type, notnull, default, pk in table_info
         ]

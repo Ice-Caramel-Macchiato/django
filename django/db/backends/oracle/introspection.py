@@ -8,7 +8,7 @@ from django.db.backends.base.introspection import (
 )
 from django.utils.functional import cached_property
 
-FieldInfo = namedtuple('FieldInfo', BaseFieldInfo._fields + ('is_autofield', 'is_json'))
+FieldInfo = namedtuple('FieldInfo', BaseFieldInfo._fields + ('is_autofield', 'is_json', 'column_comment'))
 
 
 class DatabaseIntrospection(BaseDatabaseIntrospection):
@@ -121,7 +121,8 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
                     )
                     THEN 1
                     ELSE 0
-                END as is_json
+                END as is_json,
+                  user_tab_cols.comments as column_comment,
             FROM user_tab_cols
             LEFT OUTER JOIN
                 user_tables ON user_tables.table_name = user_tab_cols.table_name
@@ -129,7 +130,7 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
         """, [table_name])
         field_map = {
             column: (internal_size, default if default != 'NULL' else None, collation, is_autofield, is_json)
-            for column, default, collation, internal_size, is_autofield, is_json in cursor.fetchall()
+            for column, default, collation, internal_size, is_autofield, is_json, column_comment, in cursor.fetchall()
         }
         self.cache_bust_counter += 1
         cursor.execute("SELECT * FROM {} WHERE ROWNUM < 2 AND {} > 0".format(
@@ -138,11 +139,11 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
         description = []
         for desc in cursor.description:
             name = desc[0]
-            internal_size, default, collation, is_autofield, is_json = field_map[name]
+            internal_size, default, collation, is_autofield, is_json, column_comment = field_map[name]
             name = name % {}  # cx_Oracle, for some reason, doubles percent signs.
             description.append(FieldInfo(
                 self.identifier_converter(name), *desc[1:3], internal_size, desc[4] or 0,
-                desc[5] or 0, *desc[6:], default, collation, is_autofield, is_json,
+                desc[5] or 0, *desc[6:], default, collation, is_autofield, is_json, column_comment
             ))
         return description
 
