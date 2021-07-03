@@ -103,7 +103,7 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
         return [
             FieldInfo(
                 name, data_type, None, get_field_size(data_type), None, None,
-                not notnull, default, collations.get(name), None, pk == 1, name in json_columns
+                not notnull, default, collations.get(name), pk == 1, name in json_columns, None
             )
             for cid, name, data_type, notnull, default, pk in table_info
         ]

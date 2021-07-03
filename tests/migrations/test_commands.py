@@ -571,7 +571,7 @@ class MigrateTests(MigrationTestBase):
         self.assertColumnCommentEquals('migrations_author', 'rating', 'new comment for rating Column')
         self.assertColumnCommentEquals('migrations_book', 'author_id', 'this is FK')
 
-        # Unmigrate everything
+        # Unmigrate 0002
         stdout = io.StringIO()
         call_command('migrate', 'migrations', '0001', verbosity=2, stdout=stdout, no_color=True)
         # The correct db comment
@@ -583,6 +583,9 @@ class MigrateTests(MigrationTestBase):
         self.assertColumnCommentNotExists('migrations_tribble', 'id')
         self.assertColumnCommentNotExists('migrations_tribble', 'fluffy')
         self.assertColumnCommentEquals('migrations_tribble', 'bool_field', 'new db comment')
+        # Unmigrate everything
+        call_command('migrate', 'migrations', 'zero', verbosity=0)
+        call_command('migrate', 'migrations', 'zero', verbosity=0, database='other')
 
     @override_settings(MIGRATION_MODULES={"migrations": "migrations.test_migrations_squashed_complex"})
     def test_showmigrations_plan_squashed(self):

@@ -119,8 +119,7 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
             FROM information_schema.columns
             WHERE table_name = %s AND table_schema = DATABASE()
         """, [default_column_collation, table_name])
-        rows = cursor.fetchall()
-        field_info = {line[0]: InfoLine(*line) for line in rows}
+        field_info = {line[0]: InfoLine(*line) for line in cursor.fetchall()}
         cursor.execute("SELECT * FROM %s LIMIT 1" % self.connection.ops.quote_name(table_name))
 
         def to_int(i):

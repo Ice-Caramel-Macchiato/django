@@ -330,7 +330,6 @@ class BaseDatabaseSchemaEditor:
         """
         sql, params = self.table_sql(model)
         # Prevent using [] as params, in the case a literal '%' is used in the definition
-        print('----')
         self.execute(sql, params or None)
 
         # Add any field index and index_together's (deferred as SQLite _remake_table needs it)

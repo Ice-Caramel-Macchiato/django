@@ -3134,7 +3134,7 @@ class SchemaTests(TransactionTestCase):
         )
         with atomic(), connection.schema_editor() as editor:
             with self.assertRaisesMessage(TransactionManagementError, message):
-                editor.execute(editor.sql_create_table % {'table': 'foo', 'definition': ''})
+                editor.execute(editor.sql_create_table % {'table': 'foo', 'definition': '', 'table_comment': ''})
 
     @skipUnlessDBFeature('supports_foreign_keys', 'indexes_foreign_keys')
     def test_foreign_key_index_long_names_regression(self):
