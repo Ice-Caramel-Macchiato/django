@@ -16,3 +16,6 @@ class FeaturesTests(TestCase):
         ):
             with self.assertRaisesMessage(OperationalError, msg):
                 connection.features.supports_json_field
+
+    def test_no_supports_db_comments(self):
+        self.assertFalse(connection.features.supports_db_comments)

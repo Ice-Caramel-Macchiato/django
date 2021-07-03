@@ -542,6 +542,48 @@ class MigrateTests(MigrationTestBase):
         call_command('showmigrations', format='plan', stdout=out, verbosity=2, no_color=True)
         self.assertEqual('(no migrations)\n', out.getvalue().lower())
 
+    @skipUnlessDBFeature('supports_db_comments')
+    @override_settings(MIGRATION_MODULES={"migrations": "migrations.test_migrations_db_comment"})
+    def test_migrate_db_comment(self):
+        """
+        Tests db comment of the migrate command.
+        """
+
+        # Run the migrations to 0001 only
+        stdout = io.StringIO()
+        call_command('migrate', 'migrations', '0001', verbosity=2, stdout=stdout, no_color=True)
+
+        # The correct tables exist
+        self.assertColumnCommentEquals('migrations_author', 'name', 'db comment to name Field')
+        self.assertColumnCommentNotExists('migrations_author', 'slug')
+        self.assertColumnCommentEquals('migrations_author', 'age', 'db comment to age Field')
+        self.assertColumnCommentEquals('migrations_author', 'silly_field', 'changed db comment')
+
+        self.assertColumnCommentNotExists('migrations_tribble', 'id')
+        self.assertColumnCommentNotExists('migrations_tribble', 'fluffy')
+        self.assertColumnCommentEquals('migrations_tribble', 'bool_field', 'new db comment')
+
+        # Run migrations all the way
+        call_command("migrate", verbosity=0)
+        # The correct tables exist
+        self.assertColumnCommentNotExists('migrations_author', 'silly_field')
+        self.assertColumnExists('migrations_author', 'rating')
+        self.assertColumnCommentEquals('migrations_author', 'rating', 'new comment for rating Column')
+        self.assertColumnCommentEquals('migrations_book', 'author_id', 'this is FK')
+
+        # Unmigrate everything
+        stdout = io.StringIO()
+        call_command('migrate', 'migrations', '0001', verbosity=2, stdout=stdout, no_color=True)
+        # The correct db comment
+        self.assertColumnCommentEquals('migrations_author', 'name', 'db comment to name Field')
+        self.assertColumnCommentNotExists('migrations_author', 'slug')
+        self.assertColumnCommentEquals('migrations_author', 'age', 'db comment to age Field')
+        self.assertColumnCommentEquals('migrations_author', 'silly_field', 'changed db comment')
+
+        self.assertColumnCommentNotExists('migrations_tribble', 'id')
+        self.assertColumnCommentNotExists('migrations_tribble', 'fluffy')
+        self.assertColumnCommentEquals('migrations_tribble', 'bool_field', 'new db comment')
+
     @override_settings(MIGRATION_MODULES={"migrations": "migrations.test_migrations_squashed_complex"})
     def test_showmigrations_plan_squashed(self):
         """

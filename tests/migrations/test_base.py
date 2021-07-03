@@ -120,6 +120,21 @@ class MigrationTestBase(TransactionTestCase):
     def assertFKNotExists(self, table, columns, to):
         return self.assertFKExists(table, columns, to, False)
 
+    def _get_column_db_comment(self, table, column, using):
+        return [c.column_comment for c in self.get_table_description(table, using=using) if c.name == column][0]
+
+    def assertColumnCommentEquals(self, table, column, column_comment, using='default'):
+        self.assertEqual(self._get_column_db_comment(table, column, using), column_comment)
+
+    def assertColumnCommentNotEquals(self, table, column, column_comment, using='default'):
+        self.assertNotEqual(self._get_column_db_comment(table, column, using), column_comment)
+
+    def assertColumnCommentExists(self, table, column, using='default'):
+        self.assertTrue(self._get_column_db_comment(table, column, using))
+
+    def assertColumnCommentNotExists(self, table, column, using='default'):
+        self.assertFalse(self._get_column_db_comment(table, column, using))
+
     @contextmanager
     def temporary_migration_module(self, app_label='migrations', module=None):
         """
